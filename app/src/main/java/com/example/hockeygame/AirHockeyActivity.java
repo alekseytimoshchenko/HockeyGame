@@ -30,7 +30,7 @@ public class AirHockeyActivity extends AppCompatActivity
 			mGLSurfaceView.setEGLContextClientVersion(2);
 			
 			//Assign our render
-			mGLSurfaceView.setRenderer(new AirHockeyRender());
+			mGLSurfaceView.setRenderer(new AirHockeyRender(this));
 			mRendererSet = true;
 		}
 		else

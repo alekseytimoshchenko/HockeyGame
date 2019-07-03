@@ -1,6 +1,10 @@
 package com.example.hockeygame;
 
+import android.content.Context;
 import android.opengl.GLSurfaceView;
+
+import com.example.hockeygame.util.ShaderHelper;
+import com.example.hockeygame.util.TextResourceReader;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,11 +18,14 @@ import static android.opengl.GLES20.glViewport;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import androidx.annotation.NonNull;
+
 class AirHockeyRender implements GLSurfaceView.Renderer
 {
 	private static final int POSITION_COMPONENT_COUNT = 2;
 	private static final int BYTES_PER_FLOAT = 4;
 	private final FloatBuffer mVertexData;
+	private Context mContext;
 	
 	float[] mTableVerticesWithTriangles = { //
 			// Triangle 1
@@ -39,8 +46,10 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 			4.5f, 12f//
 	};
 	
-	AirHockeyRender()
+	AirHockeyRender(@NonNull final Context iContext)
 	{
+		mContext = iContext;
+		
 		mVertexData = ByteBuffer.allocate(mTableVerticesWithTriangles.length * BYTES_PER_FLOAT)//
 		                        .order(ByteOrder.nativeOrder())//
 		                        .asFloatBuffer();
@@ -52,6 +61,14 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 	public void onSurfaceCreated(final GL10 iGL10, final EGLConfig iEGLConfig)
 	{
 		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+		
+		final String vertexShaderSource = TextResourceReader.readTextFileFromResource(mContext, R.raw.simple_vertex_shader);
+		final String fragmentShaderSource = TextResourceReader.readTextFileFromResource(mContext, R.raw.simple_fragment_shader);
+		
+		final int vertexShader = ShaderHelper.compileVertexShader(vertexShaderSource);
+		final int fragmentShader = ShaderHelper.compileFragmentShader(fragmentShaderSource);
+		
+		
 	}
 	
 	@Override

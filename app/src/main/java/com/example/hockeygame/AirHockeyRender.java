@@ -18,18 +18,13 @@ import androidx.annotation.NonNull;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_FLOAT;
-import static android.opengl.GLES20.GL_LINES;
-import static android.opengl.GLES20.GL_LINE_WIDTH;
-import static android.opengl.GLES20.GL_POINTS;
-import static android.opengl.GLES20.GL_TRIANGLES;
+import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glDrawArrays;
-import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
-import static android.opengl.GLES20.glLineWidth;
 import static android.opengl.GLES20.glUniform4f;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
@@ -50,33 +45,25 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 	private int mAPositionLocation;
 	
 	private float[] mTableVerticesWithTriangles = { //
-			// Triangle 1 Top
+//			 Top
+			-0.5f, 0.5f, //
 			-0.5f, 0f, //
-			0.5f, 0.5f, //
-			-0.5f, 0.5f,
-			
-			// Triangle 2 Top
-			-0.5f, 0f,//
-			0.5f, 0f, //
 			0.5f, 0.5f,//
+			0.5f, 0f//
 			
-			// Triangle 3 Bottom
-			-0.5f, -0.5f, //
-			0.5f, 0f, //
-			-0.5f, 0f,
-			
-			// Triangle 4 Bottom
-			-0.5f, -0.5f,//
-			0.5f, -0.5f, //
-			0.5f, 0f,//
-			
-			// Central Line 1
+//			  Bottom
 			-0.5f, 0f, //
+			-0.5f, -0.5f, //
 			0.5f, 0f,//
-			
-			// Mallets
-			0f, -0.25f, //
-			0f, 0.25f//
+			0.5f, -0.5f,//
+
+//			// Central Line 1
+//			-0.5f, 0f, //
+//			0.5f, 0f,//
+//
+//			// Mallets
+//			0f, -0.25f, //
+//			0f, 0.25f//
 	};
 	
 	AirHockeyRender(@NonNull final Context iContext)
@@ -142,22 +129,22 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 		
 		//Table Top
 		glUniform4f(mUColorLocation, .5f, .5f, 1.0f, 1.0f);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
 		//Table Bottom
 		glUniform4f(mUColorLocation, .5f, 1.0f, .5f, .5f);
-		glDrawArrays(GL_TRIANGLES, 6, 6);
-		
-		//Middle line
-		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-		glDrawArrays(GL_LINES, 12, 2);
-		
-		// Draw the first mallet blue.
-		glUniform4f(mUColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
-		glDrawArrays(GL_POINTS, 14, 1);
-		
-		// Draw the second mallet red.
-		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-		glDrawArrays(GL_POINTS, 15, 1);
+		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+//
+//		//Middle line
+//		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+//		glDrawArrays(GL_LINES, 8, 2);
+//
+//		// Draw the first mallet blue.
+//		glUniform4f(mUColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
+//		glDrawArrays(GL_POINTS, 10, 1);
+//
+//		// Draw the second mallet red.
+//		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+//		glDrawArrays(GL_POINTS, 11, 1);
 	}
 }

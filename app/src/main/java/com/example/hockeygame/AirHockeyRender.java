@@ -18,6 +18,8 @@ import androidx.annotation.NonNull;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_FLOAT;
+import static android.opengl.GLES20.GL_LINES;
+import static android.opengl.GLES20.GL_POINTS;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
@@ -49,7 +51,7 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 			-0.5f, 0.5f, //
 			-0.5f, 0f, //
 			0.5f, 0.5f,//
-			0.5f, 0f//
+			0.5f, 0f,//
 			
 //			  Bottom
 			-0.5f, 0f, //
@@ -57,13 +59,13 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 			0.5f, 0f,//
 			0.5f, -0.5f,//
 
-//			// Central Line 1
-//			-0.5f, 0f, //
-//			0.5f, 0f,//
-//
-//			// Mallets
-//			0f, -0.25f, //
-//			0f, 0.25f//
+			// Central Line 1
+			-0.5f, 0f, //
+			0.5f, 0f,//
+
+			// Mallets
+			0f, -0.25f, //
+			0f, 0.25f//
 	};
 	
 	AirHockeyRender(@NonNull final Context iContext)
@@ -134,17 +136,17 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 		//Table Bottom
 		glUniform4f(mUColorLocation, .5f, 1.0f, .5f, .5f);
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-//
-//		//Middle line
-//		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-//		glDrawArrays(GL_LINES, 8, 2);
-//
-//		// Draw the first mallet blue.
-//		glUniform4f(mUColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
-//		glDrawArrays(GL_POINTS, 10, 1);
-//
-//		// Draw the second mallet red.
-//		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-//		glDrawArrays(GL_POINTS, 11, 1);
+
+		//Middle line
+		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+		glDrawArrays(GL_LINES, 8, 2);
+
+		// Draw the first mallet blue.
+		glUniform4f(mUColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
+		glDrawArrays(GL_POINTS, 10, 1);
+
+		// Draw the second mallet red.
+		glUniform4f(mUColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+		glDrawArrays(GL_POINTS, 11, 1);
 	}
 }

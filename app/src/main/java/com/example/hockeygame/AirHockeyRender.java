@@ -5,6 +5,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.example.hockeygame.util.LoggerConfig;
+import com.example.hockeygame.util.MatrixHelper;
 import com.example.hockeygame.util.ShaderHelper;
 import com.example.hockeygame.util.TextResourceReader;
 
@@ -36,7 +37,7 @@ import static android.opengl.GLES20.glViewport;
 
 class AirHockeyRender implements GLSurfaceView.Renderer
 {
-	private static final int POSITION_COMPONENT_COUNT = 2;
+	private static final int POSITION_COMPONENT_COUNT = 4;
 	private static final int BYTES_PER_FLOAT = 4;
 	private final FloatBuffer mVertexData;
 	private Context mContext;
@@ -54,26 +55,25 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 	private static final String U_MATRIX = "u_Matrix";
 	private int mUMatrixLocation;
 	private final float[] mProjectionMatrix = new float[16];
+	private final float[] mModelMatrix = new float[16];
 	
 	private float[] mTableVerticesWithTriangles = { //
-			// Order of coordinates: X, Y, R, G, B
+			// Order of coordinates: X, Y, Z, W, R, G, B
 			// Triangle Fan
-			0f, 0f, 1f, 1f, 1f,
+			0f, 0f, 0f, 1.5f, 1f, 1f, 1f, //
+			-0.5f, -0.8f, 0f, 1f, 0.7f, 0.7f, 0.7f, //
+			0.5f, -0.8f, 0f, 1f, 0.7f, 0.7f, 0.7f, //
+			0.5f, 0.8f, 0f, 2f, 0.7f, 0.7f, 0.7f,//
+			-0.5f, 0.8f, 0f, 2f, 0.7f, 0.7f, 0.7f, //
+			-0.5f, -0.8f, 0f, 1f, 0.7f, 0.7f, 0.7f,
 			
-			-0.5f, -0.8f, 0.7f, 0.7f, 0.7f,//
-			0.5f, -0.8f, 0.7f, 0.7f, 0.7f, //
-			0.5f, 0.8f, 0.7f, 0.7f, 0.7f, //
-			-0.5f, 0.8f, 0.7f, 0.7f, 0.7f, //
-			-0.5f, -0.8f, 0.7f, 0.7f, 0.7f,//
-			
-			// Line
-			-0.5f, 0f, 1f, 0f, 0f, //
-			0.5f, 0f, 1f, 0f, 0f,//
+			// Line 1
+			-0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f, //
+			0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f,
 			
 			// Mallets
-			0f, -0.4f, 0f, 0f, 1f, //
-			0f, 0.4f, 1f, 0f, 0f//
-	};
+			0f, -0.4f, 0f, 1.25f, 0f, 0f, 1f, //
+			0f, 0.4f, 0f, 1.75f, 1f, 0f, 0f};
 	
 	AirHockeyRender(@NonNull final Context iContext)
 	{
@@ -134,18 +134,15 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 		// Set the OpenGL viewport to fill the entire surface.
 		glViewport(0, 0, width, height);
 		
-		final float aspectRatio = width > height ? (float) width / (float) height : (float) height / (float) width;
+		MatrixHelper.perspectiveM(mProjectionMatrix, 45, (float) width / (float) height, 1f, 10f);
 		
-		if (width > height)
-		{
-			// Landscape
-			Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
-		}
-		else
-		{
-			// Portrait or square
-			Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
-		}
+		Matrix.setIdentityM(mModelMatrix, 0);
+		Matrix.translateM(mModelMatrix, 0, 0f, 0f, -3f);
+		Matrix.rotateM(mModelMatrix, 0, -60f, 1f, 0f, 0f);
+		
+		final float[] temp = new float[16];
+		Matrix.multiplyMM(temp, 0, mProjectionMatrix, 0, mModelMatrix, 0);
+		System.arraycopy(temp, 0, mProjectionMatrix, 0, temp.length);
 	}
 	
 	@Override

@@ -1,29 +1,22 @@
 package com.example.hockeygame.objects;
 
-import android.opengl.GLES20;
-
-import com.example.hockeygame.Constants;
 import com.example.hockeygame.data.VertexArray;
 import com.example.hockeygame.programs.ColorShaderProgram;
 import com.example.hockeygame.util.Geometry;
 
 import java.util.List;
 
-import static android.opengl.GLES20.GL_POINTS;
-
-TITLE
-Updating Shaders
-public class Mallet
+public class Puck
 {
 	private static final int POSITION_COMPONENT_COUNT = 3;
-	public final float radius;
-	public final float height;
+	public final float radius, height;
 	private final VertexArray vertexArray;
 	private final List<ObjectBuilder.DrawCommand> drawList;
 	
-	public Mallet(float radius, float height, int numPointsAroundMallet)
+	public Puck(float radius, float height, int numPointsAroundPuck)
 	{
-		ObjectBuilder.GeneratedData generatedData = ObjectBuilder.createMallet(new Geometry.Point(0f, 0f, 0f), radius, height, numPointsAroundMallet);
+		ObjectBuilder.GeneratedData generatedData = //
+				ObjectBuilder.createPuck(new Geometry.Cylinder(new Geometry.Point(0f, 0f, 0f), radius, height), numPointsAroundPuck);
 		this.radius = radius;
 		this.height = height;
 		vertexArray = new VertexArray(generatedData.vertexData);

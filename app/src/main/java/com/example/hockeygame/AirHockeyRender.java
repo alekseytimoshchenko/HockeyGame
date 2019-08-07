@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.example.hockeygame.objects.Mallet;
+import com.example.hockeygame.objects.Puck;
 import com.example.hockeygame.objects.Table;
 import com.example.hockeygame.programs.ColorShaderProgram;
 import com.example.hockeygame.programs.TextureShaderProgram;
@@ -16,9 +17,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
-import static android.opengl.GLES20.glUniform4fv;
-import static android.opengl.GLES20.glUniformMatrix4fv;
-import static android.opengl.GLES20.glVertexAttribPointer;
 import static android.opengl.GLES20.glViewport;
 
 class AirHockeyRender implements GLSurfaceView.Renderer
@@ -29,8 +27,14 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 	
 	private Table mTable;
 	private Mallet mMallet;
+	private Puck mPuck;
+	
 	private TextureShaderProgram mTextureProgram;
 	private ColorShaderProgram mColorProgram;
+	
+	private final float[] viewMatrix = new float[16];
+	private final float[] viewProjectionMatrix = new float[16];
+	private final float[] modelViewProjectionMatrix = new float[16];
 	
 	private int mTexture;
 	
@@ -44,7 +48,8 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 	{
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		mTable = new Table();
-		mMallet = new Mallet();
+		mMallet = new Mallet(0.08f, 0.15f, 32);
+		mPuck = new Puck(0.06f, 0.02f, 32);
 		mTextureProgram = new TextureShaderProgram(mContext);
 		mColorProgram = new ColorShaderProgram(mContext);
 		mTexture = TextureHelper.loadTexture(mContext, R.drawable.air_hockey_surface);
@@ -57,14 +62,23 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 		glViewport(0, 0, width, height);
 		
 		MatrixHelper.perspectiveM(mProjectionMatrix, 45, (float) width / (float) height, 1f, 10f);
-		
+		Matrix.setLookAtM(viewMatrix, 0, 0f, 1.2f, 2.2f, 0f, 0f, 0f, 0f, 1f, 0f);
+	}
+	
+	private void positionTableInScene()
+	{
+		// The table is defined in terms of X & Y coordinates, so we rotate it
+		// 90 degrees to lie flat on the XZ plane.
 		Matrix.setIdentityM(mModelMatrix, 0);
-		Matrix.translateM(mModelMatrix, 0, 0f, 0f, -3f);
-		Matrix.rotateM(mModelMatrix, 0, -60f, 1f, 0f, 0f);
-		
-		final float[] temp = new float[16];
-		Matrix.multiplyMM(temp, 0, mProjectionMatrix, 0, mModelMatrix, 0);
-		System.arraycopy(temp, 0, mProjectionMatrix, 0, temp.length);
+		Matrix.rotateM(mModelMatrix, 0, -90f, 1f, 0f, 0f);
+		Matrix.multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix, 0, mModelMatrix, 0);
+	}
+	
+	private void positionObjectInScene(float x, float y, float z)
+	{
+		Matrix.setIdentityM(mModelMatrix, 0);
+		Matrix.translateM(mModelMatrix, 0, x, y, z);
+		Matrix.multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix, 0, mModelMatrix, 0);
 	}
 	
 	@Override
@@ -73,16 +87,26 @@ class AirHockeyRender implements GLSurfaceView.Renderer
 		// Clear the rendering surface.
 		GLES20.glClear(GL_COLOR_BUFFER_BIT);
 		
-		// Draw the table.
+		Matrix.multiplyMM(viewProjectionMatrix, 0, mProjectionMatrix, 0, viewMatrix, 0);
+		positionTableInScene();
 		mTextureProgram.useProgram();
-		mTextureProgram.setUniforms(mProjectionMatrix, mTexture);
+		mTextureProgram.setUniforms(modelViewProjectionMatrix, mTexture);
 		mTable.bindData(mTextureProgram);
 		mTable.draw();
 		
 		// Draw the mallets.
+		positionObjectInScene(0f, mMallet.height / 2f, -0.4f);
 		mColorProgram.useProgram();
-		mColorProgram.setUniforms(mProjectionMatrix);
+		mColorProgram.setUniforms(modelViewProjectionMatrix, 1f, 0f, 0f);
 		mMallet.bindData(mColorProgram);
+		mMallet.draw();
+		
+		positionObjectInScene(0f, mMallet.height / 2f, 0.4f);
+		mColorProgram.setUniforms(modelViewProjectionMatrix, 0f, 0f, 1f);
+		
+		// Note that we don't have to define the object data twice -- we just
+		// draw the same mallet again but in a different position and with a
+		// different color.
 		mMallet.draw();
 	}
 }

@@ -11,8 +11,6 @@ import java.util.List;
 
 import static android.opengl.GLES20.GL_POINTS;
 
-TITLE
-Updating Shaders
 public class Mallet
 {
 	private static final int POSITION_COMPONENT_COUNT = 3;

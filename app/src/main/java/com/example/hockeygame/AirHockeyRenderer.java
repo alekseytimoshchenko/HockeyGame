@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.Log;
 
 import com.example.hockeygame.objects.Mallet;
 import com.example.hockeygame.objects.Puck;
@@ -94,7 +95,11 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		
 		// Now test if this ray intersects with the mallet by creating a
 		// bounding sphere that wraps the mallet.
-		Sphere malletBoundingSphere = new Sphere(new Geometry.Point(blueMalletPosition.x, blueMalletPosition.y, blueMalletPosition.z), mMallet.height / 2f);
+		Geometry.Sphere malletBoundingSphere = new Geometry.Sphere(new Geometry.Point(//
+				blueMalletPosition.x, //
+				blueMalletPosition.y, //
+				blueMalletPosition.z), //
+				mMallet.height / 2f);
 		
 		// If the ray intersects (if the user touched a part of the screen that
 		// intersects the mallet's bounding sphere), then set malletPressed = true.

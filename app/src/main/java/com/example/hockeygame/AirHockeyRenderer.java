@@ -48,6 +48,11 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 	private final float farBound = -0.8f;
 	private final float nearBound = 0.8f;
 	
+	private Geometry.Point puckPosition;
+	private Geometry.Vector puckVector;
+	
+	private Geometry.Point previousBlueMalletPosition;
+	
 	private int mTexture;
 	
 	public AirHockeyRenderer(Context context)
@@ -66,6 +71,8 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		mColorProgram = new ColorShaderProgram(mContext);
 		mTexture = TextureHelper.loadTexture(mContext, R.drawable.air_hockey_surface);
 		blueMalletPosition = new Geometry.Point(0f, mMallet.height / 2f, 0.4f);
+		puckPosition = new Geometry.Point(0f, mPuck.height / 2f, 0f);
+		puckVector = new Geometry.Vector(0f, 0f, 0f);
 	}
 	
 	@Override
@@ -124,11 +131,22 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 			// representing our table. We'll move the mallet along this plane
 			Geometry.Point touchedPoint = Geometry.intersectionPoint(ray, plane);
 			
+			previousBlueMalletPosition = blueMalletPosition;
+			
 			blueMalletPosition = new Geometry.Point(//
 					clamp(touchedPoint.x, leftBound + mMallet.radius, rightBound - mMallet.radius), //
 					mMallet.height / 2f, //
 					clamp(touchedPoint.z, 0f + mMallet.radius, nearBound - mMallet.radius)//
 			);
+			
+			float distance = Geometry.vectorBetween(blueMalletPosition, puckPosition).length();
+			
+			if (distance < (mPuck.radius + mMallet.radius))
+			{
+				// The mallet has struck the puck. Now send the puck flying
+				// based on the mallet velocity.
+				puckVector = Geometry.vectorBetween(previousBlueMalletPosition, blueMalletPosition);
+			}
 		}
 	}
 	
@@ -174,6 +192,8 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		// Clear the rendering surface.
 		GLES20.glClear(GL_COLOR_BUFFER_BIT);
 		
+		puckPosition = puckPosition.translate(puckVector);
+		
 		Matrix.multiplyMM(mViewProjectionMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 		Matrix.invertM(invertedViewProjectionMatrix, 0, mViewProjectionMatrix, 0);
 		
@@ -182,6 +202,13 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		mTextureProgram.setUniforms(mModelViewProjectionMatrix, mTexture);
 		mTable.bindData(mTextureProgram);
 		mTable.draw();
+		
+		// Draw the Puck.
+		positionObjectInScene(puckPosition.x, puckPosition.y, puckPosition.z);
+		mColorProgram.useProgram();
+		mColorProgram.setUniforms(mModelViewProjectionMatrix, 1f, 1f, 0f);
+		mPuck.bindData(mColorProgram);
+		mPuck.draw();
 		
 		// Draw the mallets.
 		positionObjectInScene(0f, mMallet.height / 2f, -0.4f);

@@ -43,6 +43,11 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 	private boolean malletPressed = false;
 	private Geometry.Point blueMalletPosition;
 	
+	private final float leftBound = -0.5f;
+	private final float rightBound = 0.5f;
+	private final float farBound = -0.8f;
+	private final float nearBound = 0.8f;
+	
 	private int mTexture;
 	
 	public AirHockeyRenderer(Context context)
@@ -118,8 +123,18 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 			// Find out where the touched point intersects the plane
 			// representing our table. We'll move the mallet along this plane
 			Geometry.Point touchedPoint = Geometry.intersectionPoint(ray, plane);
-			blueMalletPosition = new Geometry.Point(touchedPoint.x, mMallet.height / 2f, touchedPoint.z);
+			
+			blueMalletPosition = new Geometry.Point(//
+					clamp(touchedPoint.x, leftBound + mMallet.radius, rightBound - mMallet.radius), //
+					mMallet.height / 2f, //
+					clamp(touchedPoint.z, 0f + mMallet.radius, nearBound - mMallet.radius)//
+			);
 		}
+	}
+	
+	private float clamp(float value, float min, float max)
+	{
+		return Math.min(max, Math.max(value, min));
 	}
 	
 	private Geometry.Ray convertNormalized2DPointToRay(float normalizedX, float normalizedY)
@@ -176,7 +191,7 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		mMallet.draw();
 		
 		positionObjectInScene(blueMalletPosition.x, blueMalletPosition.y, blueMalletPosition.z);
-
+		
 		mColorProgram.setUniforms(mModelViewProjectionMatrix, 0f, 0f, 1f);
 		
 		// Note that we don't have to define the object data twice -- we just

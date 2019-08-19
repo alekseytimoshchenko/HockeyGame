@@ -194,6 +194,27 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		
 		puckPosition = puckPosition.translate(puckVector);
 		
+		if (puckPosition.x < leftBound + mPuck.radius || puckPosition.x > rightBound - mPuck.radius)
+		{
+			puckVector = new Geometry.Vector(-puckVector.x, puckVector.y, puckVector.z);
+			puckVector = puckVector.scale(0.99f);
+		}
+		
+		if (puckPosition.z < farBound + mPuck.radius || puckPosition.z > nearBound - mPuck.radius)
+		{
+			puckVector = new Geometry.Vector(puckVector.x, puckVector.y, -puckVector.z);
+			puckVector = puckVector.scale(0.99f);
+		}
+		
+		puckVector = puckVector.scale(0.99f);
+		
+		// Clamp the puck position.
+		puckPosition = new Geometry.Point(//
+				clamp(puckPosition.x, leftBound + mPuck.radius, rightBound - mPuck.radius), //
+				puckPosition.y, //
+				clamp(puckPosition.z, farBound + mPuck.radius, nearBound - mPuck.radius)//
+		);
+		
 		Matrix.multiplyMM(mViewProjectionMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 		Matrix.invertM(invertedViewProjectionMatrix, 0, mViewProjectionMatrix, 0);
 		

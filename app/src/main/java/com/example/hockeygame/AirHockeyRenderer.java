@@ -40,8 +40,10 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 	
 	private final float[] invertedViewProjectionMatrix = new float[16];
 	
-	private boolean malletPressed = false;
+	private boolean blueMalletPressed = false;
+	private boolean redMalletPressed = false;
 	private Geometry.Point blueMalletPosition;
+	private Geometry.Point redMalletPosition;
 	
 	private final float leftBound = -0.5f;
 	private final float rightBound = 0.5f;
@@ -52,10 +54,11 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 	private Geometry.Vector puckVector;
 	
 	private Geometry.Point previousBlueMalletPosition;
+	private Geometry.Point previousRedMalletPosition;
 	
 	private int mTexture;
 	
-	public AirHockeyRenderer(Context context)
+	AirHockeyRenderer(Context context)
 	{
 		this.mContext = context;
 	}
@@ -71,6 +74,7 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		mColorProgram = new ColorShaderProgram(mContext);
 		mTexture = TextureHelper.loadTexture(mContext, R.drawable.air_hockey_surface);
 		blueMalletPosition = new Geometry.Point(0f, mMallet.height / 2f, 0.4f);
+		redMalletPosition = new Geometry.Point(0f, mMallet.height / 2f, -0.4f);
 		puckPosition = new Geometry.Point(0f, mPuck.height / 2f, 0f);
 		puckVector = new Geometry.Vector(0f, 0f, 0f);
 	}
@@ -101,26 +105,33 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		Matrix.multiplyMM(mModelViewProjectionMatrix, 0, mViewProjectionMatrix, 0, mModelMatrix, 0);
 	}
 	
-	public void handleTouchPress(float normalizedX, float normalizedY)
+	void handleTouchPress(float normalizedX, float normalizedY)
 	{
 		Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX, normalizedY);
 		
 		// Now test if this ray intersects with the mallet by creating a
 		// bounding sphere that wraps the mallet.
-		Geometry.Sphere malletBoundingSphere = new Geometry.Sphere(new Geometry.Point(//
+		Geometry.Sphere blueMalletBoundingSphere = new Geometry.Sphere(new Geometry.Point(//
 				blueMalletPosition.x, //
 				blueMalletPosition.y, //
 				blueMalletPosition.z), //
 				mMallet.height / 2f);
 		
+		Geometry.Sphere redMalletBoundingSphere = new Geometry.Sphere(new Geometry.Point(//
+				redMalletPosition.x, //
+				redMalletPosition.y, //
+				redMalletPosition.z), //
+				mMallet.height / 2f);
+		
 		// If the ray intersects (if the user touched a part of the screen that
 		// intersects the mallet's bounding sphere), then set malletPressed = true.
-		malletPressed = Geometry.intersects(malletBoundingSphere, ray);
+		blueMalletPressed = Geometry.intersects(blueMalletBoundingSphere, ray);
+		redMalletPressed = Geometry.intersects(redMalletBoundingSphere, ray);
 	}
 	
-	public void handleTouchDrag(float normalizedX, float normalizedY)
+	void handleTouchDrag(float normalizedX, float normalizedY)
 	{
-		if (malletPressed)
+		if (blueMalletPressed)
 		{
 			Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX, normalizedY);
 			
@@ -146,6 +157,35 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 				// The mallet has struck the puck. Now send the puck flying
 				// based on the mallet velocity.
 				puckVector = Geometry.vectorBetween(previousBlueMalletPosition, blueMalletPosition);
+			}
+		}
+		
+		if (redMalletPressed)
+		{
+			Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX, normalizedY);
+			
+			// Define a plane representing our air hockey table.
+			Geometry.Plane plane = new Geometry.Plane(new Geometry.Point(0, 0, 0), new Geometry.Vector(0, 1, 0));
+			
+			// Find out where the touched point intersects the plane
+			// representing our table. We'll move the mallet along this plane
+			Geometry.Point touchedPoint = Geometry.intersectionPoint(ray, plane);
+			
+			previousRedMalletPosition = redMalletPosition;
+			
+			redMalletPosition = new Geometry.Point(//
+					clamp(touchedPoint.x, leftBound + mMallet.radius, rightBound - mMallet.radius), //
+					mMallet.height / 2f, //
+					clamp(touchedPoint.z, farBound + mMallet.radius, 0f - mMallet.radius )//
+			);
+			
+			float distance = Geometry.vectorBetween(redMalletPosition, puckPosition).length();
+			
+			if (distance < (mPuck.radius + mMallet.radius))
+			{
+				// The mallet has struck the puck. Now send the puck flying
+				// based on the mallet velocity.
+				puckVector = Geometry.vectorBetween(previousRedMalletPosition, redMalletPosition);
 			}
 		}
 	}
@@ -232,7 +272,7 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer
 		mPuck.draw();
 		
 		// Draw the mallets.
-		positionObjectInScene(0f, mMallet.height / 2f, -0.4f);
+		positionObjectInScene(redMalletPosition.x, redMalletPosition.y, redMalletPosition.z);
 		mColorProgram.useProgram();
 		mColorProgram.setUniforms(mModelViewProjectionMatrix, 1f, 0f, 0f);
 		mMallet.bindData(mColorProgram);

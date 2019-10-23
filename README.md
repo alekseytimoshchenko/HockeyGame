@@ -1,4 +1,4 @@
-# HockeyGame -  Android Game : Sample App
+# HockeyGame - OpenGL Sample Game App
 
 #### This repository contains a detailed sample app that : 
 - written in Java
